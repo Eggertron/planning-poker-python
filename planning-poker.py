@@ -4,15 +4,15 @@
 # @date: 11/12/2018
 # @email: edgar.h.han@gmail.com
 
-from flask import Flask
-from flask import render_template
+from flask import Flask, session, redirect, url_for, escape, request, render_template
+from random import randint
 
 # ==================================================================
 # GLOBAL VARS
 # ==================================================================
 
 app = Flask(__name__)
-data = {'123':'456'}
+data = {'123':1}
 
 @app.route('/')
 def hello_world():
@@ -41,4 +41,20 @@ def hello(name=None):
 @app.route('/room/')
 @app.route('/room/<room_id>')
 def show_room(room_id=None):
-    return 'room %s does not exist' % room_id
+    global data
+    print(data)
+    if not room_id in data:
+        return 'room %s does not exist' % room_id
+    data[room_id] = data[room_id] + 1
+    return 'current number is %d' % data[room_id]
+
+@app.route('/create', methods=['GET', 'POST'])
+def create_room():
+    if request.method == 'POST':
+        # create a new room and add creator as admin
+        room_id = str(randint(1000,9999))
+        global data
+        data[room_id] = 0
+        return 'hello {} your room number is <a href="/room/{}">{}</a>'.format(request.form['username'], room_id, room_id)
+    else:
+        return render_template('create_room.html')
