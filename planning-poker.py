@@ -20,20 +20,18 @@ data = {}
 def hello_world():
     return 'Hello World'
 
-@app.route('/post/<int:post_id>')
-def show_post(post_id):
-    # show the post with the given id, the id is an integer
-    return 'Post %d' % post_id
-
-@app.route('/path/<path:subpath>')
-def show_subpath(subpath):
-    # show the subpath after /path/
-    return 'Subpath %s' % subpath
-
-@app.route('/hello/')
-@app.route('/hello/<name>')
-def hello(name=None):
-    return render_template('hello.html', name=name)
+@app.route('/login/', methods=['GET', 'POST'])
+@app.route('/login/<room_id>', methods=['GET', 'POST'])
+def login(room_id=None, methods=['GET', 'POST']):
+    if not 'username' in session:
+        if request.method == 'POST':
+            username = request.form['username']
+            session['username'] = username
+            if room_id:
+                return redirect(url_for('show_room', room_id=room_id))
+        else:
+            return render_template('join.html')
+    return 'You are logged in as {}'.format(username)
 
 @app.route('/room/')
 def no_room():
@@ -41,14 +39,9 @@ def no_room():
 
 @app.route('/room/<room_id>', methods=['GET', 'POST'])
 def show_room(room_id=None):
-    username = ''
-    if request.method == 'POST':
-        username = request.form['username']
-        session['username'] = username
-    elif 'username' in session:
-        username = session['username']
-    else:
-        return render_template('join.html')
+    if not 'username' in session:
+        return redirect(url_for('login', room_id=room_id))
+    username = session['username']
     global data
     if not room_id in data:
         return 'room %s does not exist' % room_id
@@ -81,4 +74,4 @@ def reset_data():
 def logout():
     # remove the username from the session if it's there
     session.pop('username', None)
-    return redirect(url_for('show_room'))
+    return redirect(url_for('login'))
