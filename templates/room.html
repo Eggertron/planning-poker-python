@@ -7,6 +7,37 @@
 {% endif %}
 
 <br>
-<textarea rows="4" cols="50">
+<form method=post>
+	<input type=submit name=vote value="1">
+	<input type=submit name=vote value="2">
+	<input type=submit name=vote value="3">
+	<input type=submit name=vote value="5">
+	<input type=submit name=vote value="8">
+	<input type=submit name=vote value="13">
+</form>
+<br>
+<h2>Current Message</h2>
+<br>
+<textarea rows="1" cols="50">
 	{{ information }}
 </textarea> 
+<br>
+<h2>Current Votes</h2>
+<textarea rows="4" cols="50">
+	{{ board }}
+</textarea>
+<br>
+<h2>Some Div stuff</h2>
+<div id="this-div">
+</div>
+
+
+<script>
+    // Client-side Javascript in the HTML
+    var targetContainer = document.getElementById("this-div");
+    var eventSource = new EventSource("/stream");
+
+    eventSource.onmessage = function(e) {
+        targetContainer.innerHTML = e.data;
+    };
+</script>
