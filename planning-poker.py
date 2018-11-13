@@ -4,9 +4,10 @@
 # @date: 11/12/2018
 # @email: edgar.h.han@gmail.com
 
-from flask import Flask, session, redirect, url_for, escape, request, render_template, Response
+from flask import Flask, session, redirect, url_for, escape, request, render_template, Response, Markup
 from random import randint
 import time # remove this for mutex
+import json
 
 # ==================================================================
 # GLOBAL VARS
@@ -48,32 +49,28 @@ def show_room(room_id=None):
     username = session['username']
     global data
     if not room_id in data:
-        return 'room %s does not exist' % room_id
+        return 'room {} does not exist, <a href="/create">Create New Room?</a>'.format(room_id)
     room_data = data[room_id]
-    if not username in room_data:
-        room_data[username] = {'vote':-1}
-    user_data = room_data[username]
+    users_data = room_data['users']
+    if not username in users_data:
+        users_data[username] = {'vote':-1}
+    user_data = users_data[username]
     msg = room_data['msg']
     if request.method == 'POST':
         user_data['vote'] = request.form['vote']
         data['index'] += 1
-    stats = get_stats(room_data)
-    return render_template('room.html', name=username, information=msg, board=stats)
+    stats = get_stats(users_data)
+    return render_template('room.html', name=username, information=msg, board=stats, room_id=room_id)
 
-def get_stats(room_data):
+def get_stats(users_data):
     result = ''
-    for k,v in room_data.items():
-        if not (
-                k == 'msg'
-                or k == 'admin'
-                or k == 'index'
-                ):
-            username = k
-            vote = v['vote']
-            if vote == '-1':
-                vote = '?'
-            result += '{} votes {}\n'.format(username, vote)
-    return result
+    for k,v in users_data.items():
+        username = k
+        vote = v['vote']
+        if vote == '-1':
+            vote = '?'
+        result += '{} votes {} <br>'.format(username, vote)
+    return Markup(result)
 
 @app.route('/create/', methods=['GET', 'POST'])
 def create_room():
@@ -82,7 +79,15 @@ def create_room():
         admin = request.form['username']
         room_id = str(randint(1000,9999))
         global data
-        data[room_id] = {'admin':admin, 'msg':'default message'}
+        data[room_id] = {
+                'admin':admin,
+                'msg':'default message',
+                'users':{
+                    admin:{
+                        'vote':'-1'
+                        }
+                    }
+                }
         return 'hello {} your room number is <a href="/room/{}">{}</a>'.format(admin, room_id, room_id)
     else:
         return render_template('create_room.html')
@@ -107,6 +112,6 @@ def stream():
         while True:
             if data['index'] > previous_index:
                 previous_index = data['index']
-                yield "data: {}\n\n".format(data)
+                yield "data: {}\n\n".format(json.dumps(data))
             time.sleep(0.2) # replace this with mutex
     return Response(eventStream(), mimetype="text/event-stream")

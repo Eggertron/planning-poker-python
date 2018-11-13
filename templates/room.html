@@ -22,13 +22,10 @@
 	{{ information }}
 </textarea> 
 <br>
-<h2>Current Votes</h2>
-<textarea rows="4" cols="50">
-	{{ board }}
-</textarea>
 <br>
 <h2>Some Div stuff</h2>
 <div id="this-div">
+{{ board }}
 </div>
 
 
@@ -38,6 +35,18 @@
     var eventSource = new EventSource("/stream");
 
     eventSource.onmessage = function(e) {
-        targetContainer.innerHTML = e.data;
+	var data_main = JSON.parse(e.data);
+	var room_data = data_main["{{ room_id }}"];
+	var users_data = room_data.users;
+	var results = "";
+	for (var name in users_data) {
+	    var user_data = users_data[name];
+	    var vote = user_data["vote"];
+	    if (vote == "-1") {
+                vote = "?";
+            }
+	    results += "" + name + " votes " + vote + "<br>";
+        } 
+	targetContainer.innerHTML = results;
     };
 </script>
