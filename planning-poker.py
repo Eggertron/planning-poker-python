@@ -6,6 +6,7 @@
 
 from flask import Flask, session, redirect, url_for, escape, request, render_template, Response
 from random import randint
+import time # remove this for mutex
 
 # ==================================================================
 # GLOBAL VARS
@@ -107,4 +108,5 @@ def stream():
             if data['index'] > previous_index:
                 previous_index = data['index']
                 yield "data: {}\n\n".format(data)
+            time.sleep(0.2) # replace this with mutex
     return Response(eventStream(), mimetype="text/event-stream")
