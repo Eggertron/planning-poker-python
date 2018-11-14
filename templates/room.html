@@ -5,9 +5,14 @@
 {% else %}
   <h1>Hello, World!</h1>
 {% endif %}
-
 <br>
 <form method=post>
+{% if admin %}
+<h2>Hide Votes?</h2>
+	<input type=submit name=vote value="True">
+	<input type=submit name=vote value="False">
+<br>
+{% endif %}
 	<input type=submit name=vote value="1">
 	<input type=submit name=vote value="2">
 	<input type=submit name=vote value="3">
@@ -32,7 +37,7 @@
 <script>
     // Client-side Javascript in the HTML
     var targetContainer = document.getElementById("this-div");
-    var eventSource = new EventSource("/stream");
+    var eventSource = new EventSource("/stream/{{ room_id }}");
 
     eventSource.onmessage = function(e) {
 	var data_main = JSON.parse(e.data);

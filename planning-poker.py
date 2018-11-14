@@ -54,13 +54,29 @@ def show_room(room_id=None):
     users_data = room_data['users']
     if not username in users_data:
         users_data[username] = {'vote':-1}
+        data['index'] += 1
     user_data = users_data[username]
     msg = room_data['msg']
     if request.method == 'POST':
-        user_data['vote'] = request.form['vote']
+        form_response = request.form['vote']
+        if form_response == 'True':
+            room_data['hide_vote'] = True
+        elif form_response == 'False':
+            room_data['hide_vote'] = False
+        else:
+            user_data['vote'] = request.form['vote']
         data['index'] += 1
-    stats = get_stats(users_data)
-    return render_template('room.html', name=username, information=msg, board=stats, room_id=room_id)
+    if room_data['hide_vote'] == True:
+        new_users_data = users_data.copy()
+        hide_votes(new_users_data)
+    else:
+        new_users_data = users_data
+    stats = get_stats(new_users_data)
+    if username == room_data['admin']:
+        is_admin = username
+    else:
+        is_admin = None
+    return render_template('room.html', name=username, information=msg, board=stats, room_id=room_id, admin=is_admin)
 
 def get_stats(users_data):
     result = ''
@@ -76,12 +92,16 @@ def get_stats(users_data):
 def create_room():
     if request.method == 'POST':
         # create a new room and add creator as admin
-        admin = request.form['username']
+        #admin = request.form['username']
+        if not 'username' in session:
+            return redirect(url_for('login'))
+        admin = session['username']
         room_id = str(randint(1000,9999))
         global data
         data[room_id] = {
                 'admin':admin,
                 'msg':'default message',
+                'hide_vote':True,
                 'users':{
                     admin:{
                         'vote':'-1'
@@ -90,6 +110,8 @@ def create_room():
                 }
         return 'hello {} your room number is <a href="/room/{}">{}</a>'.format(admin, room_id, room_id)
     else:
+        if not 'username' in session:
+            return redirect(url_for('login'))
         return render_template('create_room.html')
 
 @app.route('/reset/')
@@ -105,13 +127,28 @@ def logout():
     return redirect(url_for('login'))
 
 @app.route("/stream")
-def stream():
+@app.route("/stream/<room_id>")
+def stream(room_id=None):
     def eventStream():
+        print('streaming for room {}'.format(room_id))
         global data
         previous_index = data['index']
         while True:
             if data['index'] > previous_index:
                 previous_index = data['index']
-                yield "data: {}\n\n".format(json.dumps(data))
+                new_data = data.copy()
+                for k in new_data:
+                    if not k == 'index':
+                        room_data = new_data[k]
+                        hide_vote = room_data['hide_vote']
+                        users_data = room_data['users']
+                        if hide_vote:
+                            hide_votes(users_data)
+                yield "data: {}\n\n".format(json.dumps(new_data))
             time.sleep(0.2) # replace this with mutex
     return Response(eventStream(), mimetype="text/event-stream")
+
+def hide_votes(users_data):
+    for name in users_data:
+        user_data = users_data[name]
+        user_data['vote'] = '???'
