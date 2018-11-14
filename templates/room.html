@@ -6,7 +6,8 @@
   <h1>Hello, World!</h1>
 {% endif %}
 <br>
-<form method=post>
+<iframe width="0" height="0" border="0" name="dummyframe" id="dummyframe"></iframe>
+<form method=post target="dummyframe">
 {% if admin %}
 <h2>Hide Votes?</h2>
 	<input type=submit name=vote value="True">
@@ -40,9 +41,7 @@
     var eventSource = new EventSource("/stream/{{ room_id }}");
 
     eventSource.onmessage = function(e) {
-	var data_main = JSON.parse(e.data);
-	var room_data = data_main["{{ room_id }}"];
-	var users_data = room_data.users;
+	var users_data = JSON.parse(e.data);
 	var results = "";
 	for (var name in users_data) {
 	    var user_data = users_data[name];

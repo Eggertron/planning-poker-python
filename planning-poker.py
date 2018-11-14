@@ -133,18 +133,17 @@ def stream(room_id=None):
         print('streaming for room {}'.format(room_id))
         global data
         previous_index = data['index']
+        room_data = data[room_id]
         while True:
             if data['index'] > previous_index:
                 previous_index = data['index']
-                new_data = data.copy()
-                for k in new_data:
-                    if not k == 'index':
-                        room_data = new_data[k]
-                        hide_vote = room_data['hide_vote']
-                        users_data = room_data['users']
-                        if hide_vote:
-                            hide_votes(users_data)
-                yield "data: {}\n\n".format(json.dumps(new_data))
+                for k in room_data:
+                    hide_vote = room_data['hide_vote']
+                    users_data = room_data['users']
+                    if hide_vote:
+                        users_data = users_data.copy()
+                        hide_votes(users_data)
+                yield "data: {}\n\n".format(json.dumps(users_data))
             time.sleep(0.2) # replace this with mutex
     return Response(eventStream(), mimetype="text/event-stream")
 
