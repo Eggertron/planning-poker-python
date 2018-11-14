@@ -71,6 +71,7 @@ def show_room(room_id=None):
             elif form_response == 'False':
                 room_data['hide_vote'] = False
             elif form_response == 'Reset':
+                room_data['hide_vote'] = True
                 reset_users_data(users_data)
             else:
                 user_data['vote'] = form_response
