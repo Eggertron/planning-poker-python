@@ -4,7 +4,7 @@
 # @date: 11/12/2018
 # @email: edgar.h.han@gmail.com
 
-from flask import Flask, session, redirect, url_for, escape, request, render_template, Response, Markup
+from flask import Flask, session, redirect, url_for, escape, request, render_template, Response, Markup, send_from_directory
 from random import randint
 import time # remove this for mutex
 import json
@@ -16,16 +16,14 @@ import json
 app = Flask(__name__)
 # set the secret key.  keep this really secret:
 app.secret_key = 'A0Zr98j/3yX R~XHH!jmN]LWX/,?RT'
-#app.add_url_rule('/favicon.ico', redirect_to=url_for('static', filename='favicon.jpg'))
 data = {'index':0}
 
 @app.route('/')
 def hello_world():
-    return 'Hello World'
+    return redirect(url_for('login', room_id='1'))
 
-@app.route('/login/', methods=['GET', 'POST'])
 @app.route('/login/<room_id>', methods=['GET', 'POST'])
-def login(room_id=None, methods=['GET', 'POST']):
+def login(room_id='1'):
     if not 'username' in session:
         if request.method == 'POST':
             username = request.form['username']
@@ -53,7 +51,7 @@ def show_room(room_id=None):
     global data
     print(data)
     if not room_id in data:
-        return 'room {} does not exist, <a href="/create">Create New Room?</a>'.format(room_id)
+        return '{}, room {} does not exist, <a href="/create">Create New Room?</a>'.format(username, room_id)
     room_data = data[room_id]
     users_data = room_data['users']
     msg = room_data['msg']
