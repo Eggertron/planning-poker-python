@@ -9,11 +9,15 @@
 <iframe width="0" height="0" border="0" name="dummyframe" id="dummyframe"></iframe>
 <form method=post target="dummyframe">
 {% if admin %}
+<h1>Admin Options</h1>
 <h2>Hide Votes?</h2>
 	<input type=submit name=vote value="True">
 	<input type=submit name=vote value="False">
+	<br>
 	<input type=text name=message value="{{information}}">
 	<input type=submit value=update>
+	<br>
+	<input type=submit name=vote value=Reset>
 <br>
 {% endif %}
 	<input type=submit name=vote value="1">
@@ -49,7 +53,7 @@
 	for (var name in users_data) {
 	    var user_data = users_data[name];
 	    var vote = user_data["vote"];
-	    if (vote == "-1") {
+	    if (vote.replace(/\s/g,'') == "-1") {
                 vote = "?";
             }
 	    results += "" + name + " votes " + vote + "<br>";
