@@ -59,13 +59,20 @@ def show_room(room_id=None):
     user_data = users_data[username]
     msg = room_data['msg']
     if request.method == 'POST':
-        form_response = request.form['vote']
+        if 'vote' in request.form:
+            form_response = request.form['vote']
+        else:
+            form_response = None
         if form_response == 'True':
             room_data['hide_vote'] = True
         elif form_response == 'False':
             room_data['hide_vote'] = False
-        else:
-            user_data['vote'] = request.form['vote']
+        elif form_response:
+            user_data['vote'] = form_response
+        if username == room_data['admin']:
+            print('update room message')
+            msg = request.form['message']
+            room_data['msg'] = msg
         data['index'] += 1
     if room_data['hide_vote'] == True:
         users_data = hide_votes(users_data)
@@ -135,12 +142,15 @@ def stream(room_id=None):
         while True:
             if data['index'] > previous_index:
                 previous_index = data['index']
-                for k in room_data:
-                    hide_vote = room_data['hide_vote']
-                    users_data = room_data['users']
-                    if hide_vote:
-                        users_data = hide_votes(users_data)
-                yield "data: {}\n\n".format(json.dumps(users_data))
+                hide_vote = room_data['hide_vote']
+                users_data = room_data['users']
+                room_data_pointer = room_data
+                room_data = room_data.copy()
+                if hide_vote:
+                    hidden_users_data = hide_votes(users_data)
+                    room_data['users'] = hidden_users_data
+                yield "data: {}\n\n".format(json.dumps(room_data))
+                room_data = room_data_pointer
             time.sleep(0.2) # replace this with mutex
     return Response(eventStream(), mimetype="text/event-stream")
 

@@ -12,6 +12,8 @@
 <h2>Hide Votes?</h2>
 	<input type=submit name=vote value="True">
 	<input type=submit name=vote value="False">
+	<input type=text name=message value="{{information}}">
+	<input type=submit value=update>
 <br>
 {% endif %}
 	<input type=submit name=vote value="1">
@@ -24,9 +26,9 @@
 <br>
 <h2>Current Message</h2>
 <br>
-<textarea rows="1" cols="50">
-	{{ information }}
-</textarea> 
+<div id="cur_msg">
+{{ information }}
+</div>
 <br>
 <br>
 <h2>Some Div stuff</h2>
@@ -41,7 +43,8 @@
     var eventSource = new EventSource("/stream/{{ room_id }}");
 
     eventSource.onmessage = function(e) {
-	var users_data = JSON.parse(e.data);
+	var room_data = JSON.parse(e.data);
+	var users_data = room_data.users;
 	var results = "";
 	for (var name in users_data) {
 	    var user_data = users_data[name];
@@ -52,5 +55,6 @@
 	    results += "" + name + " votes " + vote + "<br>";
         } 
 	targetContainer.innerHTML = results;
+	document.getElementById("cur_msg").innerHTML = room_data.msg
     };
 </script>
