@@ -48,6 +48,7 @@ def show_room(room_id=None):
         return redirect(url_for('login', room_id=room_id))
     username = session['username']
     global data
+    print( data)
     if not room_id in data:
         return 'room {} does not exist, <a href="/create">Create New Room?</a>'.format(room_id)
     room_data = data[room_id]
@@ -67,11 +68,8 @@ def show_room(room_id=None):
             user_data['vote'] = request.form['vote']
         data['index'] += 1
     if room_data['hide_vote'] == True:
-        new_users_data = users_data.copy()
-        hide_votes(new_users_data)
-    else:
-        new_users_data = users_data
-    stats = get_stats(new_users_data)
+        users_data = hide_votes(users_data)
+    stats = get_stats(users_data)
     if username == room_data['admin']:
         is_admin = username
     else:
@@ -141,13 +139,13 @@ def stream(room_id=None):
                     hide_vote = room_data['hide_vote']
                     users_data = room_data['users']
                     if hide_vote:
-                        users_data = users_data.copy()
-                        hide_votes(users_data)
+                        users_data = hide_votes(users_data)
                 yield "data: {}\n\n".format(json.dumps(users_data))
             time.sleep(0.2) # replace this with mutex
     return Response(eventStream(), mimetype="text/event-stream")
 
 def hide_votes(users_data):
+    results = {}
     for name in users_data:
-        user_data = users_data[name]
-        user_data['vote'] = '???'
+        results[name] = {'vote':'hidden'}
+    return results
