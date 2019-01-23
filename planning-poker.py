@@ -156,6 +156,8 @@ def stream(room_id=None):
                 if hide_vote:
                     hidden_users_data = hide_votes(users_data)
                     room_data['users'] = hidden_users_data
+		else:
+		    room_data['users'] = get_average(users_data)
                 yield "data: {}\n\n".format(json.dumps(room_data))
                 room_data = room_data_pointer
             time.sleep(0.2) # replace this with mutex
@@ -169,4 +171,22 @@ def hide_votes(users_data):
             results[name] = {'vote':'not ready'}
         else:
             results[name] = {'vote':'hidden'}
+    return results
+
+def get_average(users_data):
+    results = {}
+    avg_count = 0
+    avg_sum = 0
+    for name in users_data:
+        # copy the data to disposable dict
+        user_data = users_data[name]
+	vote = user_data['vote']
+	results[name] = {'vote':vote}
+	vote = int(vote)
+	if vote > 0:
+	    avg_count += 1
+	    avg_sum += vote
+    if avg_count != 0:
+        avg = str(avg_sum / avg_count)
+        results['average'] = {'vote':avg}
     return results

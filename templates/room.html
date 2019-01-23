@@ -21,12 +21,12 @@
 	<input type=submit name=vote value=Reset>
 <br>
 {% endif %}
-	<input type=submit name=vote value="1">
-	<input type=submit name=vote value="2">
-	<input type=submit name=vote value="3">
-	<input type=submit name=vote value="5">
-	<input type=submit name=vote value="8">
-	<input type=submit name=vote value="13">
+	<input type=submit name=vote value="1" onclick="changeColor(this)"/>
+	<input type=submit name=vote value="2" onclick="changeColor(this)"/>
+	<input type=submit name=vote value="3" onclick="changeColor(this)"/>
+	<input type=submit name=vote value="5" onclick="changeColor(this)"/>
+	<input type=submit name=vote value="8" onclick="changeColor(this)"/>
+	<input type=submit name=vote value="13" onclick="changeColor(this)"/>
 </form>
 <br>
 <h2>Current Message</h2>
@@ -41,7 +41,15 @@
 {{ board }}
 </div>
 
-
+<script>
+function changeColor(button) {
+  inputs = document.getElementsByTagName("input")
+  for (var i = 0; i < inputs.length; i++) {
+    inputs[i].style.color = "black";
+  }
+  button.style.color = "red";
+}
+</script>
 <script>
     // Client-side Javascript in the HTML
     var targetContainer = document.getElementById("this-div");
